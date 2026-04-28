@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-width=1.0">
+    <title>Sorteo Iralda Velas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;800&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --color-fondo: #F6F3EF; 
+            --color-principal: #8B1A5C; 
+            --color-texto: #333333;
+            --color-blanco: #ffffff;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--color-fondo);
+            color: var(--color-texto);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        .logo-container {
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .logo-img {
+            max-width: 180px; 
+            height: auto;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--color-principal);
+            font-size: 2.2rem;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .contenedor-sorteo {
+            background: var(--color-blanco);
+            border-radius: 25px;
+            padding: 2.5rem 2rem;
+            width: 90%;
+            max-width: 700px;
+            box-shadow: 0 15px 35px rgba(139, 26, 92, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .contenedor-imagen {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        .contenedor-imagen:hover {
+            transform: scale(1.05);
+        }
+        .imagen-premio {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 20px;
+            border: 4px solid var(--color-principal);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .etiqueta-ver-mas {
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--color-principal);
+            color: white;
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .titulo-premio {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--color-principal);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: -10px;
+        }
+
+        .spinner-numero {
+            font-size: 6rem;
+            font-weight: 800;
+            color: var(--color-blanco);
+            background: var(--color-principal);
+            min-width: 260px;
+            height: 130px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            box-shadow: 0 12px 25px rgba(139, 26, 92, 0.3);
+            letter-spacing: 2px;
+        }
+
+        .nombre-ganador {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--color-principal);
+            min-height: 60px;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        .mostrar-nombre {
+            opacity: 1;
+        }
+
+        .btn-sortear {
+            background: var(--color-principal);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.3rem;
+            font-weight: 800;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 20px rgba(139, 26, 92, 0.4);
+            margin-top: 1rem;
+        }
+        .btn-sortear:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(139, 26, 92, 0.6);
+        }
+        .btn-sortear:disabled {
+            background: #ccc;
+            color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* --- NUEVO: RESULTADOS FINALES --- */
+        .resultados-finales {
+            display: none; /* Oculto al principio */
+            background: var(--color-fondo);
+            border-radius: 15px;
+            padding: 20px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 2px dashed var(--color-principal);
+            margin-top: 10px;
+            animation: fadeIn 1s ease-in;
+        }
+        .resultados-finales h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--color-principal);
+            margin-top: 0;
+            font-size: 1.8rem;
+        }
+        .ganador-item {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--color-texto);
+            margin: 15px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .btn-reset {
+            background: #cc0000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+            display: none; /* Solo se muestra en MODO PRUEBA */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- FOOTER Y MODALES SIGUEN IGUAL --- */
+        footer {
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+        footer a { color: var(--color-principal); text-decoration: none; font-weight: 800; margin: 0 10px; }
+
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(246, 243, 239, 0.98); overflow-y: auto;
+        }
+        .modal-contenido { display: flex; flex-direction: column; align-items: center; gap: 30px; padding: 40px 20px; max-width: 800px; margin: auto; }
+        .item-galeria { text-align: center; }
+        .item-galeria h3 { color: var(--color-principal); font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 10px; }
+        .modal-contenido img { width: 100%; max-width: 500px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 3px solid var(--color-principal); }
+        .cerrar-modal {
+            position: fixed; top: 20px; right: 30px; color: var(--color-principal); font-size: 50px; font-weight: bold; cursor: pointer;
+            z-index: 1001; background: white; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        @keyframes latido {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); background: #6b1446; }
+            100% { transform: scale(1); }
+        }
+        .ganador-animacion { animation: latido 1s infinite; }
+    </style>
+</head>
+
+<body>
+
+    <div class="logo-container">
+        <img src="iraldavelas_logo.png" alt="IRALDA Velas Logo" class="logo-img">
+    </div>
+
+    <h1>Gran Sorteo de Navidad</h1>
+
+    <div class="contenedor-sorteo">
+        
+        <div class="contenedor-imagen" onclick="abrirGaleria()">
+            <img src="https://images.unsplash.com/photo-1602874801007-bd458cb6c975?auto=format&fit=crop&w=400&q=80" alt="Cesto principal" class="imagen-premio">
+            <div class="etiqueta-ver-mas">Ver los 2 Premios</div>
+        </div>
+
+        <div class="titulo-premio" id="tituloPremio">PREPARADO PARA EL 2º PREMIO</div>
+
+        <div class="spinner-numero" id="numeroDisplay">000</div>
+        <div class="nombre-ganador" id="nombreDisplay">...</div>
+
+        <button class="btn-sortear" id="btnSortear" onclick="iniciarSorteo()">¡SORTEAR 2º PREMIO!</button>
+
+        <!-- CAJA DE RESULTADOS FINALES -->
+        <div id="cajaResultados" class="resultados-finales">
+            <h2>🏆 Ganadores del Sorteo 🏆</h2>
+            <div id="listaGanadores"></div>
+        </div>
+    </div>
+
+    <button id="btnResetPrueba" class="btn-reset" onclick="resetearDatos()">Borrar Datos (Solo visible en MODO PRUEBA)</button>
+
+    <footer>
+        <a href="#" target="_blank">Instagram: @IraldaVelas</a> | 
+        <a href="#" target="_blank">Facebook: Iralda Velas</a>
+    </footer>
+
+    <div id="miModal" class="modal">
+        <span class="cerrar-modal" onclick="cerrarGaleria()">&times;</span>
+        <div class="modal-contenido">
+            <div class="item-galeria">
+                <h3>1º Premio</h3>
+                <img src="https://images.unsplash.com/photo-1602874801007-bd458cb6c975?auto=format&fit=crop&w=800&q=80" alt="1er Premio">
+            </div>
+            <div class="item-galeria">
+                <h3>2º Premio</h3>
+                <img src="https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&w=800&q=80" alt="2do Premio">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function abrirGaleria() { document.getElementById("miModal").style.display = "block"; }
+        function cerrarGaleria() { document.getElementById("miModal").style.display = "none"; }
+
+        // ==========================================
+        // === ZONA DE CONFIGURACIÓN DEL SORTEO ===
+        // ==========================================
+        
+        // MODO PRUEBA: true = rápido, no guarda permanentemente. false = real, guarda para siempre.
+        const MODO_PRUEBA = true; 
+
+        const totalNumerosRifa = 150; 
+        const tiempoDeGiro = MODO_PRUEBA ? 3000 : 10000;
+        const retrasoNombre = 1000;
+        const duracionLatido = 7000;
+
+        let sorteoActual = 2;
+        let ticketsPremiados = [];
+        let listaGanadoresFinales = []; // Aquí guardaremos los objetos con los datos de los ganadores
+
+        // === LISTA DE PARTICIPANTES (1 AL 150) ===
+        const participantes = {
+            1: "María García", 2: "Juan Pérez", 3: "Ana López", 4: "", 5: "", 6: "", 7: "", 8: "", 9: "", 10: "",
+            11: "", 12: "", 13: "", 14: "", 15: "Roberto Sánchez", 16: "", 17: "Jandry Jiménez", 18: "", 19: "", 20: "",
+            21: "", 22: "", 23: "", 24: "", 25: "Carmen Martínez", 26: "", 27: "", 28: "", 29: "", 30: "",
+            31: "", 32: "", 33: "", 34: "", 35: "", 36: "", 37: "", 38: "", 39: "", 40: "",
+            41: "", 42: "", 43: "", 44: "", 45: "", 46: "", 47: "", 48: "", 49: "", 50: "",
+            51: "", 52: "", 53: "", 54: "", 55: "", 56: "", 57: "", 58: "", 59: "", 60: "",
+            61: "", 62: "", 63: "", 64: "", 65: "", 66: "", 67: "", 68: "", 69: "", 70: "",
+            71: "", 72: "", 73: "", 74: "", 75: "", 76: "", 77: "", 78: "", 79: "", 80: "",
+            81: "", 82: "", 83: "", 84: "", 85: "", 86: "", 87: "", 88: "", 89: "", 90: "",
+            91: "", 92: "", 93: "", 94: "", 95: "", 96: "", 97: "", 98: "", 99: "", 100: "Laura Torres",
+            101: "", 102: "", 103: "", 104: "", 105: "", 106: "", 107: "", 108: "", 109: "", 110: "",
+            111: "", 112: "", 113: "", 114: "", 115: "", 116: "", 117: "", 118: "", 119: "", 120: "",
+            121: "", 122: "", 123: "", 124: "", 125: "", 126: "", 127: "", 128: "", 129: "", 130: "",
+            131: "", 132: "", 133: "", 134: "", 135: "", 136: "", 137: "", 138: "", 139: "", 140: "",
+            141: "", 142: "", 143: "", 144: "", 145: "", 146: "", 147: "", 148: "", 149: "", 150: ""
+        };
+
+        // ==========================================
+        // AL CARGAR LA PÁGINA (Comprobar si el sorteo ya se hizo antes)
+        // ==========================================
+        window.onload = function() {
+            if (MODO_PRUEBA) {
+                // Mostrar botón para limpiar datos si estamos en pruebas
+                document.getElementById('btnResetPrueba').style.display = 'block';
+            }
+
+            // Comprobar si hay ganadores guardados en la memoria del navegador
+            const datosGuardados = localStorage.getItem('iralda_sorteo_ganadores');
+            if (datosGuardados) {
+                const ganadores = JSON.parse(datosGuardados);
+                // Si ya están los 2 premios dados, bloqueamos la pantalla
+                if (ganadores.length === 2) {
+                    mostrarPantallaFinalizada(ganadores);
+                }
+            }
+        };
+
+        function iniciarSorteo() {
+            if(sorteoActual < 1) return; 
+
+            const numerosValidos = Object.keys(participantes).filter(num => {
+                const numeroAInt = parseInt(num);
+                const tieneNombre = participantes[num] && participantes[num].trim() !== "";
+                const noHaGanado = !ticketsPremiados.includes(numeroAInt);
+                return tieneNombre && noHaGanado;
+            });
+
+            if (numerosValidos.length === 0) {
+                alert("¡No hay suficientes números asignados válidos para realizar el sorteo!");
+                return;
+            }
+
+            const btn = document.getElementById('btnSortear');
+            const titulo = document.getElementById('tituloPremio');
+            const numeroDisplay = document.getElementById('numeroDisplay');
+            const nombreDisplay = document.getElementById('nombreDisplay');
+            
+            btn.disabled = true;
+            btn.innerText = "GIRANDO RULETA...";
+            titulo.innerText = `Sorteando el ${sorteoActual}º Premio...`;
+            
+            numeroDisplay.classList.remove('ganador-animacion');
+            nombreDisplay.classList.remove('mostrar-nombre');
+            nombreDisplay.innerText = "...";
+
+            const indiceAleatorio = Math.floor(Math.random() * numerosValidos.length);
+            const numeroGanador = parseInt(numerosValidos[indiceAleatorio]);
+            
+            ticketsPremiados.push(numeroGanador);
+            const nombreDelGanador = participantes[numeroGanador];
+
+            const tiempoInicio = Date.now();
+
+            const intervalo = setInterval(() => {
+                const numeroVisual = Math.floor(Math.random() * totalNumerosRifa) + 1;
+                numeroDisplay.innerText = numeroVisual.toString().padStart(3, '0');
+
+                if (Date.now() - tiempoInicio >= tiempoDeGiro) {
+                    clearInterval(intervalo);
+                    
+                    numeroDisplay.innerText = numeroGanador.toString().padStart(3, '0');
+                    numeroDisplay.classList.add('ganador-animacion'); 
+
+                    setTimeout(() => {
+                        nombreDisplay.innerText = "¡" + nombreDelGanador + "!";
+                        nombreDisplay.classList.add('mostrar-nombre');
+                        lanzarConfeti();
+
+                        // GUARDAR EL GANADOR ACTUAL EN LA LISTA
+                        listaGanadoresFinales.push({ premio: sorteoActual, nombre: nombreDelGanador, ticket: numeroGanador });
+
+                        setTimeout(() => {
+                            numeroDisplay.classList.remove('ganador-animacion');
+                        }, duracionLatido);
+
+                        sorteoActual--; 
+                        
+                        if(sorteoActual > 0) {
+                            btn.innerText = `¡SORTEAR ${sorteoActual}º PREMIO!`;
+                            btn.disabled = false;
+                            titulo.innerText = `¡TENEMOS GANADOR! PREPÁRATE PARA EL ${sorteoActual}º PREMIO`;
+                        } else {
+                            // === EL SORTEO HA TERMINADO COMPLETAMENTE ===
+                            titulo.innerText = "¡ENHORABUENA A LOS 2 GANADORES!";
+                            btn.style.display = 'none'; // Ocultamos el botón
+
+                            // Si NO estamos en pruebas, lo guardamos para siempre
+                            if (!MODO_PRUEBA) {
+                                localStorage.setItem('iralda_sorteo_ganadores', JSON.stringify(listaGanadoresFinales));
+                            }
+                            
+                            // Mostramos la caja de resultados
+                            pintarCajaResultados(listaGanadoresFinales);
+                        }
+
+                    }, retrasoNombre);
+                }
+            }, 50);
+        }
+
+        // ==========================================
+        // FUNCIONES DE INTERFAZ Y DATOS
+        // ==========================================
+
+        function mostrarPantallaFinalizada(ganadores) {
+            // Ocultamos elementos de la ruleta porque ya acabó
+            document.getElementById('numeroDisplay').style.display = 'none';
+            document.getElementById('nombreDisplay').style.display = 'none';
+            document.getElementById('btnSortear').style.display = 'none';
+            
+            document.getElementById('tituloPremio').innerText = "¡EL SORTEO HA FINALIZADO!";
+            
+            pintarCajaResultados(ganadores);
+        }
+
+        function pintarCajaResultados(ganadores) {
+            const caja = document.getElementById('cajaResultados');
+            const listaDiv = document.getElementById('listaGanadores');
+            caja.style.display = 'block';
+            listaDiv.innerHTML = ''; // Limpiamos por si acaso
+
+            // Ordenamos para que salga el 1º Premio arriba y el 2º abajo
+            ganadores.sort((a, b) => a.premio - b.premio).forEach(ganador => {
+                const numeroFormateado = ganador.ticket.toString().padStart(3, '0');
+                listaDiv.innerHTML += `
+                    <div class="ganador-item">
+                        🎁 ${ganador.premio}º PREMIO:<br> 
+                        <span style="color:var(--color-principal); font-size:1.6rem;">${ganador.nombre}</span> <br>
+                        (Boleto Nº ${numeroFormateado})
+                    </div>
+                `;
+            });
+        }
+
+        // Botón de emergencia para limpiar los datos si hacemos pruebas
+        function resetearDatos() {
+            if (confirm("¿Estás seguro de que quieres borrar los resultados guardados y reiniciar el sorteo?")) {
+                localStorage.removeItem('iralda_sorteo_ganadores');
+                location.reload(); // Recargar la página
+            }
+        }
+
+        // === CONFETI ===
+        function lanzarConfeti() {
+            var duration = 5 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0, colors: ['#8B1A5C', '#F6F3EF', '#D4Af37'] };
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) { return clearInterval(interval); }
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random(), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+    </script>
+</body>
+</html>
